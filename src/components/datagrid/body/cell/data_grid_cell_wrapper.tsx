@@ -26,6 +26,7 @@ export type CellProps = Pick<
   | 'visibleRowIndex'
   | 'style'
   | 'renderCellValue'
+  | 'cellContext'
   | 'renderCellPopover'
   | 'interactiveCellId'
   | 'rowHeightsOptions'
@@ -67,6 +68,7 @@ export const CellWrapper: FunctionComponent<CellProps> = memo(
     columnWidths,
     defaultColumnWidth,
     renderCellValue,
+    cellContext,
     renderCellPopover,
     interactiveCellId,
     setRowHeight,
