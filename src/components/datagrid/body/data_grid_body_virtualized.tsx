@@ -25,6 +25,7 @@ import {
   VariableSizeGridProps,
   GridOnItemsRenderedProps,
 } from 'react-window';
+import isEqual from 'lodash/isEqual';
 import { useResizeObserver } from '../../observer/resize_observer';
 import { useDataGridHeader } from './header';
 import { useDataGridFooter } from './footer';
@@ -45,6 +46,16 @@ import { useRowHeightUtils, useDefaultRowHeight } from '../utils/row_heights';
 import { useScrollBars, useScroll } from '../utils/scrolling';
 import { IS_JEST_ENVIRONMENT } from '../../../utils';
 
+const useDeepEqual = (value: React.CSSProperties) => {
+  const ref = useRef(value);
+
+  if (!isEqual(value, ref.current)) {
+    ref.current = value;
+  }
+
+  return ref.current;
+};
+
 export const _Cell: FunctionComponent<
   GridChildComponentProps<
     Omit<CellProps, 'colIndex' | 'visibleRowIndex'> & {
@@ -52,13 +63,14 @@ export const _Cell: FunctionComponent<
     }
   >
 > = memo(({ columnIndex, rowIndex, style, data }) => {
+  const memoStyle = useDeepEqual(style);
   const cellStyles = useMemo(() => {
     const { headerRowHeight } = data;
     return {
-      ...style,
-      top: `${parseFloat(style.top as string) + headerRowHeight}px`,
+      ...memoStyle,
+      top: `${parseFloat(memoStyle.top as string) + headerRowHeight}px`,
     };
-  }, [style, data]);
+  }, [memoStyle, data]);
   return (
     <CellWrapper
       style={cellStyles}

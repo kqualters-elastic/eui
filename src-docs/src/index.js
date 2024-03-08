@@ -43,7 +43,10 @@ const routes = [
   },
   ...childRoutes,
 ];
-
+const whyDidYouRender = require('@welldone-software/why-did-you-render');
+whyDidYouRender(React, {
+  trackAllPureComponents: true,
+});
 const root = createRoot(document.getElementById('guide'));
 
 root.render(

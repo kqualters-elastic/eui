@@ -38,7 +38,6 @@ export const HandleInteractiveChildren: FunctionComponent<
   }
 > = ({ cellEl, children, updateCellFocusContext, renderFocusTrap }) => {
   const [hasInteractiveChildren, setHasInteractiveChildren] = useState(false);
-
   // On mount, disable all interactive children
   useEffect(() => {
     if (cellEl) {
