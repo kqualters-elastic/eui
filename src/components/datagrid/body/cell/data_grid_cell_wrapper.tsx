@@ -122,6 +122,7 @@ export const CellWrapper: FunctionComponent<CellProps> = memo(
         rowManager,
         popoverContext,
         pagination,
+        cellContext,
       };
     }, [
       colIndex,
@@ -135,6 +136,7 @@ export const CellWrapper: FunctionComponent<CellProps> = memo(
       rowManager,
       popoverContext,
       pagination,
+      cellContext,
       isFirstColumn,
       isLastColumn,
       isLeadingControlColumn,

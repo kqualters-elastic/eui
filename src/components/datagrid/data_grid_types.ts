@@ -144,6 +144,7 @@ export interface EuiDataGridHeaderRowPropsSpecificProps {
   columns: EuiDataGridColumn[];
   columnWidths: EuiDataGridColumnWidths;
   schema: EuiDataGridSchema;
+  sorting?: EuiDataGridSorting;
   schemaDetectors: EuiDataGridSchemaDetector[];
   defaultColumnWidth?: number | null;
   setColumnWidth: (columnId: string, width: number) => void;
@@ -455,6 +456,7 @@ export interface EuiDataGridBodyProps {
   columns: EuiDataGridColumn[];
   visibleColCount: number;
   schema: EuiDataGridSchema;
+  sorting?: EuiDataGridSorting;
   schemaDetectors: EuiDataGridSchemaDetector[];
   rowCount: number;
   visibleRows: EuiDataGridVisibleRows;

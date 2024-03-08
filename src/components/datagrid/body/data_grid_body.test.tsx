@@ -34,6 +34,10 @@ export const dataGridBodyProps = {
   interactiveCellId: 'someId',
   inMemory: { level: 'enhancements' as any },
   inMemoryValues: {},
+  sorting: {
+    columns: [],
+    onSort: jest.fn(),
+  },
   handleHeaderMutation: jest.fn(),
   setVisibleColumns: jest.fn(),
   switchColumnPos: jest.fn(),

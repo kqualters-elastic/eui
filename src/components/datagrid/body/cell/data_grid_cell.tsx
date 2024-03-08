@@ -17,6 +17,7 @@ import React, {
   memo,
   MutableRefObject,
   ReactNode,
+  useMemo,
 } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -48,13 +49,15 @@ import { HandleInteractiveChildren } from './focus_utils';
 const EuiDataGridCellContent: FunctionComponent<
   EuiDataGridCellValueProps & {
     setCellProps: EuiDataGridCellValueElementProps['setCellProps'];
-    setCellContentsRef: EuiDataGridCell['setCellContentsRef'];
+    setCellContentsRef: (ref: HTMLDivElement | null) => void;
     isExpanded: boolean;
     isControlColumn: boolean;
     isFocused: boolean;
     ariaRowIndex: number;
     rowHeight?: EuiDataGridRowHeightOption;
-    cellActions?: ReactNode;
+    showCellActions: boolean;
+    handleCellExpansionClick: () => void;
+    popoverAnchorRef: MutableRefObject<HTMLDivElement | null>;
   }
 > = memo(
   ({
@@ -69,92 +72,189 @@ const EuiDataGridCellContent: FunctionComponent<
     rowHeightUtils,
     isControlColumn,
     isFocused,
-    cellActions,
+    showCellActions,
+    handleCellExpansionClick,
+    popoverAnchorRef,
     ...rest
   }) => {
-    // React is more permissible than the TS types indicate
+    // React is more permissive than the TS types indicate
     const CellElement =
       renderCellValue as JSXElementConstructor<EuiDataGridCellValueElementProps>;
 
-    const cellHeightType =
-      rowHeightUtils?.getHeightType(rowHeight) || 'default';
-
-    const classes = classNames(
-      'euiDataGridRowCell__content',
-      `euiDataGridRowCell__content--${cellHeightType}Height`,
-      !isControlColumn && {
-        'eui-textBreakWord': cellHeightType !== 'default',
-        'eui-textTruncate': cellHeightType === 'default',
-      }
+    const cellHeightType = useMemo(
+      () => rowHeightUtils?.getHeightType(rowHeight) || 'default',
+      [rowHeightUtils, rowHeight]
     );
 
-    let cellContent = (
-      <div
-        ref={setCellContentsRef}
-        data-datagrid-cellcontent
-        className={classes}
-      >
-        <CellElement
-          isDetails={false}
-          data-test-subj="cell-content"
-          rowIndex={rowIndex}
-          colIndex={colIndex}
-          schema={column?.schema || rest.columnType}
-          {...cellContext}
-          {...rest}
-        />
-      </div>
+    const classes = useMemo(
+      () =>
+        classNames(
+          'euiDataGridRowCell__content',
+          `euiDataGridRowCell__content--${cellHeightType}Height`,
+          !isControlColumn && {
+            'eui-textBreakWord': cellHeightType !== 'default',
+            'eui-textTruncate': cellHeightType === 'default',
+          }
+        ),
+      [cellHeightType, isControlColumn]
     );
-    if (cellHeightType === 'lineCount' && !isControlColumn) {
-      const lines = rowHeightUtils!.getLineCount(rowHeight)!;
-      cellContent = (
-        <EuiTextBlockTruncate lines={lines} cloneElement>
-          {cellContent}
-        </EuiTextBlockTruncate>
-      );
-    }
 
-    const screenReaderText = (
-      <EuiScreenReaderOnly>
-        <p hidden={!isFocused}>
-          {'- '}
-          <EuiI18n
-            token="euiDataGridCell.position"
-            default="{columnId}, column {col}, row {row}"
-            values={{
-              columnId: column?.displayAsText || rest.columnId,
-              col: colIndex + 1,
-              row: ariaRowIndex,
-            }}
+    const cellActions = useMemo(() => {
+      if (showCellActions) {
+        return (
+          <CellActions
+            rowIndex={rowIndex}
+            colIndex={colIndex}
+            column={column}
+            handleCellExpansionClick={handleCellExpansionClick}
+            popoverAnchorRef={popoverAnchorRef}
           />
-          {cellActions && (
-            <>
-              {'. '}
-              <EuiI18n
-                token="euiDataGridCell.expansionEnterPrompt"
-                default="Press the Enter key to expand this cell."
-              />
-            </>
-          )}
-        </p>
-      </EuiScreenReaderOnly>
+        );
+      } else {
+        return null;
+      }
+    }, [
+      rowIndex,
+      colIndex,
+      column,
+      handleCellExpansionClick,
+      popoverAnchorRef,
+      showCellActions,
+    ]);
+
+    const cellContent = useMemo(
+      () => (
+        <div
+          ref={setCellContentsRef}
+          data-datagrid-cellcontent
+          className={classes}
+        >
+          <CellElement
+            isDetails={false}
+            data-test-subj="cell-content"
+            rowIndex={rowIndex}
+            colIndex={colIndex}
+            schema={column?.schema || rest.columnType}
+            {...cellContext}
+            {...rest}
+          />
+        </div>
+      ),
+      [
+        setCellContentsRef,
+        classes,
+        CellElement,
+        rowIndex,
+        colIndex,
+        column?.schema,
+        cellContext,
+        rest,
+      ]
     );
+
+    const screenReaderText = useMemo(
+      () => (
+        <EuiScreenReaderOnly>
+          <p hidden={!isFocused}>
+            {'- '}
+            <EuiI18n
+              token="euiDataGridCell.position"
+              default="{columnId}, column {col}, row {row}"
+              values={{
+                columnId: column?.displayAsText || rest.columnId,
+                col: colIndex + 1,
+                row: ariaRowIndex,
+              }}
+            />
+            {showCellActions && (
+              <>
+                {'. '}
+                <EuiI18n
+                  token="euiDataGridCell.expansionEnterPrompt"
+                  default="Press the Enter key to expand this cell."
+                />
+              </>
+            )}
+          </p>
+        </EuiScreenReaderOnly>
+      ),
+      [
+        isFocused,
+        column?.displayAsText,
+        rest.columnId,
+        colIndex,
+        ariaRowIndex,
+        showCellActions,
+      ]
+    );
+
+    const truncatedCellContent = useMemo(() => {
+      if (cellHeightType === 'lineCount' && !isControlColumn) {
+        const lines = rowHeightUtils!.getLineCount(rowHeight)!;
+        return (
+          <EuiTextBlockTruncate lines={lines} cloneElement>
+            {cellContent}
+          </EuiTextBlockTruncate>
+        );
+      }
+      return cellContent;
+    }, [
+      cellHeightType,
+      isControlColumn,
+      rowHeightUtils,
+      rowHeight,
+      cellContent,
+    ]);
 
     return (
       <>
-        {cellContent}
+        {truncatedCellContent}
         {screenReaderText}
         {cellActions}
       </>
     );
   }
 );
+
 EuiDataGridCellContent.displayName = 'EuiDataGridCellContent';
 
 const RenderCellInRow: FunctionComponent<{
   children: ReactNode;
   row?: HTMLElement;
 }> = ({ row, children }) => <>{row ? createPortal(children, row) : children}</>;
+
+const CellActions: FunctionComponent<{
+  rowIndex: number;
+  colIndex: number;
+  column: EuiDataGridCellProps['column'];
+  handleCellExpansionClick: () => void;
+  popoverAnchorRef: MutableRefObject<HTMLDivElement | null>;
+}> = memo(
+  ({
+    rowIndex,
+    colIndex,
+    column,
+    handleCellExpansionClick,
+    popoverAnchorRef,
+  }) => {
+    return (
+      <>
+        <EuiDataGridCellActions
+          rowIndex={rowIndex}
+          colIndex={colIndex}
+          column={column}
+          onExpandClick={handleCellExpansionClick}
+        />
+        {/* Give the cell expansion popover a separate div/ref - otherwise the
+    extra popover wrappers mess up the absolute positioning and cause
+    animation stuttering */}
+        <div ref={popoverAnchorRef} data-test-subject="cellPopoverAnchor" />
+      </>
+    );
+  }
+);
+
+CellActions.displayName = 'CellActions';
 
 export class EuiDataGridCell extends Component<
   EuiDataGridCellProps,
@@ -362,6 +462,7 @@ export class EuiDataGridCell extends Component<
     if (nextProps.rowHeightsOptions !== this.props.rowHeightsOptions)
       return true;
     if (nextProps.renderCellValue !== this.props.renderCellValue) return true;
+    if (nextProps.cellContext !== this.props.cellContext) return true;
     if (nextProps.renderCellPopover !== this.props.renderCellPopover)
       return true;
     if (nextProps.interactiveCellId !== this.props.interactiveCellId)
@@ -629,6 +730,11 @@ export class EuiDataGridCell extends Component<
         'euiDataGridRowCell--controlColumn'
       ),
       ariaRowIndex,
+      showCellActions,
+      rowIndex,
+      colIndex,
+      handleCellExpansionClick: this.handleCellExpansionClick,
+      popoverAnchorRef: this.popoverAnchorRef,
     };
 
     const row =
@@ -666,26 +772,7 @@ export class EuiDataGridCell extends Component<
           >
             <EuiDataGridCellContent
               {...cellContentProps}
-              cellActions={
-                showCellActions && (
-                  <>
-                    <EuiDataGridCellActions
-                      rowIndex={rowIndex}
-                      colIndex={colIndex}
-                      column={column}
-                      onExpandClick={this.handleCellExpansionClick}
-                    />
-                    {/* Give the cell expansion popover a separate div/ref - otherwise the
-                  extra popover wrappers mess up the absolute positioning and cause
-                  animation stuttering */}
-                    <div
-                      ref={this.popoverAnchorRef}
-                      data-test-subject="cellPopoverAnchor"
-                    />
-                  </>
-                )
-              }
-            />
+            ></EuiDataGridCellContent>
           </HandleInteractiveChildren>
         </div>
       </RenderCellInRow>

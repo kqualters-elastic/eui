@@ -19,7 +19,6 @@ import { defaultComparator } from './data_grid_schema';
 
 export const DataGridSortingContext =
   createContext<DataGridSortingContextShape>({
-    sorting: undefined,
     sortedRowMap: [],
     getCorrectRowIndex: (number) => number,
   });
@@ -43,62 +42,49 @@ export const useSorting = ({
 }: useSortingArgs) => {
   const sortingColumns = sorting?.columns;
 
-  const sortedRowMap = useMemo(() => {
-    const rowMap: DataGridSortingContextShape['sortedRowMap'] = [];
-
+  const sortedWrappedValues = useMemo(() => {
     if (
       inMemory?.level === 'sorting' &&
       sortingColumns != null &&
       sortingColumns.length > 0
     ) {
       const inMemoryRowIndices = Object.keys(inMemoryValues);
-      const wrappedValues: Array<{
-        index: number;
-        values: EuiDataGridInMemoryValues[number];
-      }> = [];
-      for (let i = 0; i < inMemoryRowIndices.length; i++) {
-        const inMemoryRow = inMemoryValues[inMemoryRowIndices[i]];
-        wrappedValues.push({ index: i, values: inMemoryRow });
-      }
+      return inMemoryRowIndices
+        .map((row, index) => {
+          return { index, values: inMemoryValues[inMemoryRowIndices[index]] };
+        })
+        .sort((a, b) => {
+          for (let i = 0; i < sortingColumns.length; i++) {
+            const column = sortingColumns[i];
+            const aValue = a.values[column.id];
+            const bValue = b.values[column.id];
 
-      wrappedValues.sort((a, b) => {
-        for (let i = 0; i < sortingColumns.length; i++) {
-          const column = sortingColumns[i];
-          const aValue = a.values[column.id];
-          const bValue = b.values[column.id];
-
-          // get the comparator, based on schema
-          let comparator = defaultComparator;
-          if (schema.hasOwnProperty(column.id)) {
-            const columnType = schema[column.id].columnType;
-            for (let i = 0; i < schemaDetectors.length; i++) {
-              const detector = schemaDetectors[i];
-              if (
-                detector.type === columnType &&
-                detector.hasOwnProperty('comparator')
-              ) {
-                comparator = detector.comparator!;
+            // get the comparator, based on schema
+            let comparator = defaultComparator;
+            if (schema.hasOwnProperty(column.id)) {
+              const columnType = schema[column.id].columnType;
+              for (let i = 0; i < schemaDetectors.length; i++) {
+                const detector = schemaDetectors[i];
+                if (
+                  detector.type === columnType &&
+                  detector.hasOwnProperty('comparator')
+                ) {
+                  comparator = detector.comparator!;
+                }
               }
             }
+
+            const result = comparator(aValue, bValue, column.direction, {
+              aIndex: a.index,
+              bIndex: b.index,
+            });
+            // only return if the columns are unequal, otherwise allow the next sort-by column to run
+            if (result !== 0) return result;
           }
 
-          const result = comparator(aValue, bValue, column.direction, {
-            aIndex: a.index,
-            bIndex: b.index,
-          });
-          // only return if the columns are unequal, otherwise allow the next sort-by column to run
-          if (result !== 0) return result;
-        }
-
-        return 0;
-      });
-
-      for (let i = 0; i < wrappedValues.length; i++) {
-        rowMap[i] = wrappedValues[i].index;
-      }
+          return 0;
+        });
     }
-
-    return rowMap;
   }, [
     inMemory?.level,
     inMemoryValues,
@@ -106,6 +92,19 @@ export const useSorting = ({
     schema,
     schemaDetectors,
   ]);
+
+  const sortedRowMap = useMemo(() => {
+    if (
+      inMemory?.level === 'sorting' &&
+      sortingColumns != null &&
+      sortingColumns.length > 0 &&
+      sortedWrappedValues != null
+    ) {
+      return sortedWrappedValues.map((row) => row.index);
+    } else {
+      return [];
+    }
+  }, [inMemory?.level, sortingColumns, sortedWrappedValues]);
 
   // Given a visible row index, obtain the unpaginated & unsorted
   // row index from the passed cell data
@@ -128,9 +127,8 @@ export const useSorting = ({
 
   return useMemo(() => {
     return {
-      sorting,
       sortedRowMap,
       getCorrectRowIndex,
     };
-  }, [sorting, sortedRowMap, getCorrectRowIndex]);
+  }, [sortedRowMap, getCorrectRowIndex]);
 };

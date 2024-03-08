@@ -512,6 +512,7 @@ describe('EuiDataGrid', () => {
             setVisibleColumns: () => {},
           }}
           rowCount={3}
+          sorting={undefined}
           renderCellValue={renderCellValueRowAndColumnCount}
         />
       );
@@ -532,6 +533,7 @@ describe('EuiDataGrid', () => {
             setVisibleColumns: () => {},
           }}
           rowCount={3}
+          sorting={undefined}
           renderCellValue={renderCellValueRowAndColumnCount}
         />
       );

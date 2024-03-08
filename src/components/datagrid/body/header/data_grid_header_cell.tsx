@@ -27,7 +27,6 @@ import { EuiI18n } from '../../../i18n';
 import { EuiIcon } from '../../../icon';
 import { EuiListGroup } from '../../../list_group';
 import { EuiPopover } from '../../../popover';
-import { DataGridSortingContext } from '../../utils/sorting';
 import { DataGridFocusContext } from '../../utils/focus';
 import {
   EuiDataGridHeaderCellProps,
@@ -64,6 +63,7 @@ export const EuiDataGridHeaderCell: FunctionComponent<EuiDataGridHeaderCellProps
       setColumnWidth,
       setVisibleColumns,
       switchColumnPos,
+      sorting,
     }) => {
       const { id, display, displayAsText, displayHeaderCellProps } = column;
       const width = columnWidths[id] || defaultColumnWidth;
@@ -71,7 +71,6 @@ export const EuiDataGridHeaderCell: FunctionComponent<EuiDataGridHeaderCellProps
 
       const { setFocusedCell, focusFirstVisibleInteractiveCell } =
         useContext(DataGridFocusContext);
-      const { sorting } = useContext(DataGridSortingContext);
 
       const [isPopoverOpen, setIsPopoverOpen] = useState(false);
       const popoverArrowNavigationProps = usePopoverArrowNavigation();

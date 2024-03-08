@@ -111,7 +111,15 @@ describe('EuiDataGridCell', () => {
         EuiDataGridCell.prototype,
         'shouldComponentUpdate'
       );
-      component = mount(<EuiDataGridCell {...requiredProps} />);
+      component = mount(
+        <EuiDataGridCell
+          {...requiredProps}
+          column={{
+            id: 'someColumn',
+            cellActions: [() => <button />],
+          }}
+        />
+      );
     });
     afterEach(() => {
       shouldComponentUpdate.mockRestore();
@@ -309,6 +317,10 @@ describe('EuiDataGridCell', () => {
             {...requiredProps}
             colIndex={3}
             visibleRowIndex={3}
+            column={{
+              id: 'someColumn',
+              cellActions: [() => <button />],
+            }}
           />
         </DataGridFocusContext.Provider>
       );
@@ -325,6 +337,10 @@ describe('EuiDataGridCell', () => {
         <EuiDataGridCell
           {...requiredProps}
           popoverContext={{ ...mockPopoverContext, popoverIsOpen: true }}
+          column={{
+            id: 'someColumn',
+            cellActions: [() => <button />],
+          }}
         />
       );
 
@@ -340,7 +356,13 @@ describe('EuiDataGridCell', () => {
 
       const component = mount(
         <DataGridFocusContext.Provider value={mockFocusContext}>
-          <EuiDataGridCell {...requiredProps} />
+          <EuiDataGridCell
+            {...requiredProps}
+            column={{
+              id: 'someColumn',
+              cellActions: [() => <button />],
+            }}
+          />
         </DataGridFocusContext.Provider>
       );
       component.unmount();
@@ -357,6 +379,10 @@ describe('EuiDataGridCell', () => {
             {...requiredProps}
             colIndex={3}
             visibleRowIndex={3}
+            column={{
+              id: 'someColumn',
+              cellActions: [() => <button />],
+            }}
           />
         </DataGridFocusContext.Provider>
       );
@@ -374,6 +400,10 @@ describe('EuiDataGridCell', () => {
           popoverContext={{
             ...mockPopoverContext,
             popoverIsOpen: true,
+          }}
+          column={{
+            id: 'someColumn',
+            cellActions: [() => <button />],
           }}
         />
       );
@@ -393,6 +423,10 @@ describe('EuiDataGridCell', () => {
             {...requiredProps}
             colIndex={5}
             visibleRowIndex={10}
+            column={{
+              id: 'someColumn',
+              cellActions: [() => <button />],
+            }}
           />
         </DataGridFocusContext.Provider>
       );
@@ -428,6 +462,10 @@ describe('EuiDataGridCell', () => {
       colIndex: 1,
       visibleRowIndex: 2,
       isExpandable: true,
+      column: {
+        id: 'someColumn',
+        cellActions: [() => <button />],
+      },
     };
 
     it('returns true if the cell is expandable, the popover is open, and the cell location matches', () => {
@@ -455,7 +493,7 @@ describe('EuiDataGridCell', () => {
 
     it('returns false if the cell is not expandable', () => {
       const component = mount(
-        <EuiDataGridCell {...props} isExpandable={false} />
+        <EuiDataGridCell {...props} isExpandable={false} column={undefined} />
       );
       expect((component.instance() as any).isPopoverOpen()).toEqual(false);
     });

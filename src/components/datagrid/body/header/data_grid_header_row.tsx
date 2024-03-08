@@ -26,6 +26,7 @@ const EuiDataGridHeaderRow = memo(
       columnWidths,
       defaultColumnWidth,
       className,
+      sorting,
       setColumnWidth,
       setVisibleColumns,
       switchColumnPos,
@@ -59,6 +60,7 @@ const EuiDataGridHeaderRow = memo(
             index={index + leadingControlColumns.length}
             columnWidths={columnWidths}
             schema={schema}
+            sorting={sorting}
             schemaDetectors={schemaDetectors}
             setColumnWidth={setColumnWidth}
             setVisibleColumns={setVisibleColumns}

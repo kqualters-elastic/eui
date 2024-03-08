@@ -25,6 +25,7 @@ import {
   VariableSizeGridProps,
   GridOnItemsRenderedProps,
 } from 'react-window';
+import isEqual from 'lodash/isEqual';
 import { useResizeObserver } from '../../observer/resize_observer';
 import { useDataGridHeader } from './header';
 import { useDataGridFooter } from './footer';
@@ -34,6 +35,7 @@ import {
   DataGridWrapperRowsContentsShape,
 } from '../data_grid_types';
 import { useRowManager } from './data_grid_row_manager';
+import type { CellProps } from './cell/data_grid_cell_wrapper';
 import {
   useFinalGridDimensions,
   useUnconstrainedHeight,
@@ -44,28 +46,42 @@ import { useRowHeightUtils, useDefaultRowHeight } from '../utils/row_heights';
 import { useScrollBars, useScroll } from '../utils/scrolling';
 import { IS_JEST_ENVIRONMENT } from '../../../utils';
 
-export const Cell: FunctionComponent<GridChildComponentProps> = memo(
-  ({ columnIndex, rowIndex, style, data }) => {
-    const { headerRowHeight } = useContext(DataGridWrapperRowsContext);
-    const cellStyles = useMemo(
-      () => ({
-        ...style,
-        top: `${parseFloat(style.top as string) + headerRowHeight}px`,
-      }),
-      [style, headerRowHeight]
-    );
+const useDeepEqual = (value: React.CSSProperties) => {
+  const ref = useRef(value);
 
-    return (
-      <CellWrapper
-        colIndex={columnIndex}
-        visibleRowIndex={rowIndex}
-        style={cellStyles}
-        {...data}
-      />
-    );
+  if (!isEqual(value, ref.current)) {
+    ref.current = value;
   }
-);
-Cell.displayName = 'Cell';
+
+  return ref.current;
+};
+
+export const _Cell: FunctionComponent<
+  GridChildComponentProps<
+    Omit<CellProps, 'colIndex' | 'visibleRowIndex'> & {
+      headerRowHeight: number;
+    }
+  >
+> = memo(({ columnIndex, rowIndex, style, data }) => {
+  const memoStyle = useDeepEqual(style);
+  const cellStyles = useMemo(() => {
+    const { headerRowHeight } = data;
+    return {
+      ...memoStyle,
+      top: `${parseFloat(memoStyle.top as string) + headerRowHeight}px`,
+    };
+  }, [memoStyle, data]);
+  return (
+    <CellWrapper
+      style={cellStyles}
+      colIndex={columnIndex}
+      visibleRowIndex={rowIndex}
+      {...data}
+    />
+  );
+});
+
+_Cell.displayName = '_Cell';
 
 // Context is required to pass props to react-window's innerElementType
 // @see https://github.com/bvaughn/react-window/issues/404
@@ -79,6 +95,8 @@ export const DataGridWrapperRowsContext =
 type InnerElementProps = PropsWithChildren & {
   style: {
     height: number;
+    width: number;
+    pointerEvents: 'none' | undefined;
   };
 };
 
@@ -88,14 +106,13 @@ const InnerElement: VariableSizeGridProps['innerElementType'] = memo(
       const { headerRowHeight, headerRow, footerRow } = useContext(
         DataGridWrapperRowsContext
       );
-      const innerElementStyles = useMemo(
-        () => ({
-          ...style,
+      const innerElementStyles = useMemo(() => {
+        return {
+          width: style.width,
+          pointerEvents: style.pointerEvents,
           height: style.height + headerRowHeight,
-        }),
-        [style, headerRowHeight]
-      );
-
+        };
+      }, [headerRowHeight, style]);
       return (
         <>
           <div ref={ref} style={innerElementStyles} {...rest}>
@@ -114,6 +131,7 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
   memo(
     ({
       leadingControlColumns,
+      sorting,
       trailingControlColumns,
       columns,
       visibleColCount,
@@ -195,6 +213,7 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
         setColumnWidth,
         schema,
         schemaDetectors,
+        sorting,
       });
 
       const { footerRow, footerRowHeight } = useDataGridFooter({
@@ -303,14 +322,6 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
         }
       }, [gridRef, getRowHeight]);
 
-      const onItemsRendered = useCallback(
-        (itemsRendered: GridOnItemsRenderedProps) => {
-          gridItemsRendered.current = itemsRendered;
-          virtualizationOptions?.onItemsRendered?.(itemsRendered);
-        },
-        [gridItemsRendered, virtualizationOptions]
-      );
-
       const itemData = useMemo(() => {
         return {
           schemaDetectors,
@@ -353,6 +364,14 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
         headerRowHeight,
       ]);
 
+      const onItemsRendered = useCallback(
+        (itemsRendered: GridOnItemsRenderedProps) => {
+          gridItemsRendered.current = itemsRendered;
+          virtualizationOptions?.onItemsRendered?.(itemsRendered);
+        },
+        [gridItemsRendered, virtualizationOptions]
+      );
+
       const rowWrapperContextValue = useMemo(() => {
         return { headerRowHeight, headerRow, footerRow };
       }, [headerRowHeight, headerRow, footerRow]);
@@ -360,7 +379,7 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
       return IS_JEST_ENVIRONMENT || finalWidth > 0 ? (
         <DataGridWrapperRowsContext.Provider value={rowWrapperContextValue}>
           <Grid
-            {...virtualizationOptions}
+            {...(virtualizationOptions ? virtualizationOptions : {})}
             ref={gridRef}
             className={classNames(
               'euiDataGrid__virtualized',
@@ -380,11 +399,12 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
               IS_JEST_ENVIRONMENT || headerRowHeight > 0 ? visibleRowCount : 0
             }
           >
-            {Cell}
+            {_Cell}
           </Grid>
           {scrollBorderOverlay}
         </DataGridWrapperRowsContext.Provider>
       ) : null;
     }
   );
+
 EuiDataGridBodyVirtualized.displayName = 'EuiDataGridBodyVirtualized';

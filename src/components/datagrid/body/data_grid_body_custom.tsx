@@ -49,6 +49,7 @@ export const EuiDataGridBodyCustomRender: FunctionComponent<
   gridStyles,
   pagination,
   rowHeightsOptions,
+  sorting,
 }) => {
   /**
    * Columns & widths
@@ -101,6 +102,7 @@ export const EuiDataGridBodyCustomRender: FunctionComponent<
     setColumnWidth,
     schema,
     schemaDetectors,
+    sorting,
   });
 
   const { footerRow } = useDataGridFooter({
@@ -133,6 +135,7 @@ export const EuiDataGridBodyCustomRender: FunctionComponent<
       defaultColumnWidth,
       renderCellValue,
       renderCellPopover,
+      cellContext,
       interactiveCellId,
       setRowHeight,
       rowHeightsOptions,
