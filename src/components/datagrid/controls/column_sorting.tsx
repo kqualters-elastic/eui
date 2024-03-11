@@ -314,7 +314,9 @@ export const useDataGridColumnSorting = (
                   <EuiButtonEmpty
                     size="xs"
                     flush="right"
-                    onClick={() => sorting.onSort([])}
+                    onClick={() => {
+                      sorting.onSort([]);
+                    }}
                     data-test-subj="dataGridColumnSortingClearButton"
                   >
                     <EuiI18n

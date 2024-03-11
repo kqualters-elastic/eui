@@ -13,19 +13,23 @@ import { findTestSubject } from '../../../test';
 import { testByReactVersion } from '../../../test/internal';
 
 import { schemaDetectors } from '../utils/data_grid_schema';
+import type { EuiDataGridColumnSortingConfig } from '../data_grid_types';
 
 import { useDataGridColumnSorting } from './column_sorting';
 describe('useDataGridColumnSorting', () => {
   const onSort = jest.fn();
   const defaultSort = [{ id: 'columnA', direction: 'asc' as 'asc' | 'desc' }];
-  const sorting = { onSort, columns: defaultSort };
-  onSort.mockImplementation((newColumns) => (sorting.columns = newColumns));
+  const sorting = { columns: defaultSort, onSort };
   const columns = [{ id: 'columnA' }, { id: 'columnB' }, { id: 'columnC' }];
   const schema = {
     columnA: { columnType: 'numeric' },
     columnC: { columnType: 'boolean' },
   };
-  const displayValues = { columnA: 'Column A' };
+  const displayValues = {
+    columnA: 'Column A',
+    columnB: 'Column B',
+    columnC: 'Column C',
+  };
 
   const requiredArgs = [
     columns,
@@ -49,9 +53,20 @@ describe('useDataGridColumnSorting', () => {
       schemaDetectors = requiredArgs[3],
       displayValues = requiredArgs[4],
     }) => {
+      const [sortingColumns, setSortingColumns] = React.useState(defaultSort);
+      onSort.mockImplementation(
+        (sortingColumns: EuiDataGridColumnSortingConfig[]) => {
+          setSortingColumns(sortingColumns);
+        }
+      );
+      const sortingWithMock = {
+        ...sorting,
+        columns: sortingColumns,
+        onSort,
+      };
       const columnSorting = useDataGridColumnSorting(
         columns,
-        sorting,
+        sortingWithMock,
         schema,
         schemaDetectors,
         displayValues
@@ -90,7 +105,18 @@ describe('useDataGridColumnSorting', () => {
 
     it('returns null if sorting is not defined', () => {
       // @ts-ignore - normally this would be undefined vs. null, but we have = fallbacks up above for testing QOL
-      const component = mount(<MockComponent sorting={null} />);
+      const Mock = () => {
+        const columnSorting = useDataGridColumnSorting(
+          requiredArgs[0],
+          undefined,
+          requiredArgs[2],
+          requiredArgs[3],
+          requiredArgs[4]
+        );
+        return <>{columnSorting}</>;
+      };
+      const component = mount(<Mock />);
+
       expect(component.isEmptyRender()).toEqual(true);
     });
 
@@ -161,9 +187,18 @@ describe('useDataGridColumnSorting', () => {
         });
 
         it('does not render the button if there are no active sorts', () => {
-          const component = mount(
-            <MockComponent sorting={{ ...sorting, columns: [] }} />
-          );
+          const sorting = { columns: [], onSort };
+          const Mock = () => {
+            const columnSorting = useDataGridColumnSorting(
+              requiredArgs[0],
+              sorting,
+              requiredArgs[2],
+              requiredArgs[3],
+              requiredArgs[4]
+            );
+            return <>{columnSorting}</>;
+          };
+          const component = mount(<Mock />);
           openPopover(component);
 
           const clearButton = findTestSubject(
@@ -275,9 +310,18 @@ describe('useDataGridColumnSorting', () => {
           };
 
           it('adds the field to the active sort list when clicked, with a default sort direction of `asc`', () => {
-            const component = mount(<MockComponent sorting={noActiveSorts} />);
+            const Mock = () => {
+              const columnSorting = useDataGridColumnSorting(
+                requiredArgs[0],
+                noActiveSorts,
+                requiredArgs[2],
+                requiredArgs[3],
+                requiredArgs[4]
+              );
+              return <>{columnSorting}</>;
+            };
+            const component = mount(<Mock />);
             openPopoversAndSortByColumnB(component);
-
             expect(onSort).toHaveBeenCalledWith([
               { id: 'columnB', direction: 'asc' },
             ]);

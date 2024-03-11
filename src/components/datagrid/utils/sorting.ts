@@ -41,7 +41,6 @@ export const useSorting = ({
   schemaDetectors,
   startRow,
 }: useSortingArgs) => {
-  const memoizedSorting = useDeepEqual(sorting);
   const sortingColumns = useDeepEqual(sorting?.columns);
 
   const sortedWrappedValues = useMemo(() => {
@@ -129,9 +128,8 @@ export const useSorting = ({
 
   return useMemo(() => {
     return {
-      sorting: memoizedSorting,
       sortedRowMap,
       getCorrectRowIndex,
     };
-  }, [memoizedSorting, sortedRowMap, getCorrectRowIndex]);
+  }, [sortedRowMap, getCorrectRowIndex]);
 };
