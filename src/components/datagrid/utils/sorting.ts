@@ -7,6 +7,7 @@
  */
 
 import { createContext, useMemo, useCallback } from 'react';
+import { useDeepEqual } from '../../../services';
 import {
   DataGridSortingContextShape,
   EuiDataGridSorting,
@@ -40,7 +41,8 @@ export const useSorting = ({
   schemaDetectors,
   startRow,
 }: useSortingArgs) => {
-  const sortingColumns = sorting?.columns;
+  const memoizedSorting = useDeepEqual(sorting);
+  const sortingColumns = useDeepEqual(sorting?.columns);
 
   const sortedWrappedValues = useMemo(() => {
     if (
@@ -51,7 +53,7 @@ export const useSorting = ({
       const inMemoryRowIndices = Object.keys(inMemoryValues);
       return inMemoryRowIndices
         .map((row, index) => {
-          return { index, values: inMemoryValues[inMemoryRowIndices[index]] };
+          return { index, values: inMemoryValues[row] };
         })
         .sort((a, b) => {
           for (let i = 0; i < sortingColumns.length; i++) {
@@ -127,8 +129,9 @@ export const useSorting = ({
 
   return useMemo(() => {
     return {
+      sorting: memoizedSorting,
       sortedRowMap,
       getCorrectRowIndex,
     };
-  }, [sortedRowMap, getCorrectRowIndex]);
+  }, [memoizedSorting, sortedRowMap, getCorrectRowIndex]);
 };

@@ -25,7 +25,7 @@ import {
   VariableSizeGridProps,
   GridOnItemsRenderedProps,
 } from 'react-window';
-import isEqual from 'lodash/isEqual';
+import { useDeepEqual } from '../../../services';
 import { useResizeObserver } from '../../observer/resize_observer';
 import { useDataGridHeader } from './header';
 import { useDataGridFooter } from './footer';
@@ -45,16 +45,6 @@ import { useDefaultColumnWidth, useColumnWidths } from '../utils/col_widths';
 import { useRowHeightUtils, useDefaultRowHeight } from '../utils/row_heights';
 import { useScrollBars, useScroll } from '../utils/scrolling';
 import { IS_JEST_ENVIRONMENT } from '../../../utils';
-
-const useDeepEqual = (value: React.CSSProperties) => {
-  const ref = useRef(value);
-
-  if (!isEqual(value, ref.current)) {
-    ref.current = value;
-  }
-
-  return ref.current;
-};
 
 export const _Cell: FunctionComponent<
   GridChildComponentProps<
@@ -106,13 +96,14 @@ const InnerElement: VariableSizeGridProps['innerElementType'] = memo(
       const { headerRowHeight, headerRow, footerRow } = useContext(
         DataGridWrapperRowsContext
       );
+      const memoizedStyles = useDeepEqual(style);
       const innerElementStyles = useMemo(() => {
         return {
-          width: style.width,
-          pointerEvents: style.pointerEvents,
-          height: style.height + headerRowHeight,
+          ...memoizedStyles,
+          height: memoizedStyles.height + headerRowHeight,
         };
-      }, [headerRowHeight, style]);
+      }, [memoizedStyles, headerRowHeight]);
+
       return (
         <>
           <div ref={ref} style={innerElementStyles} {...rest}>

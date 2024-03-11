@@ -125,9 +125,11 @@ export const useCellPopover = (): {
     };
   }, [popoverIsOpen, closeCellPopover, openCellPopover, cellLocation]);
 
-  return useMemo(() => {
+  const cellPopover = useMemo(() => {
+    if (!popoverIsOpen || !popoverAnchor) return null;
+
     // Note that this popover is rendered once at the top grid level, rather than one popover per cell
-    const cellPopover = popoverIsOpen && popoverAnchor && (
+    return (
       <EuiWrappingPopover
         isOpen={popoverIsOpen}
         display="block"
@@ -159,7 +161,6 @@ export const useCellPopover = (): {
         {popoverContent}
       </EuiWrappingPopover>
     );
-    return { cellPopoverContext, cellPopover };
   }, [
     popoverIsOpen,
     popoverAnchor,
@@ -169,8 +170,15 @@ export const useCellPopover = (): {
     onClickOutside,
     onKeyDown,
     popoverAnchorPosition,
-    cellPopoverContext,
   ]);
+
+  return useMemo(
+    () => ({
+      cellPopoverContext,
+      cellPopover,
+    }),
+    [cellPopoverContext, cellPopover]
+  );
 };
 
 /**

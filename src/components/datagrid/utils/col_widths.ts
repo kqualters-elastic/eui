@@ -88,6 +88,8 @@ export const useColumnWidths = ({
   }, [columns]);
 
   const [columnWidths, setColumnWidths] = useState<EuiDataGridColumnWidths>(
+    // Passing an anonymous initializer function for performance, so it only runs once on init
+    // @see https://react.dev/reference/react/useState#examples-initializer
     () => computeColumnWidths()
   );
 

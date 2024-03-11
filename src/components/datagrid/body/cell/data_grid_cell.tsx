@@ -15,9 +15,9 @@ import React, {
   JSXElementConstructor,
   KeyboardEvent,
   memo,
-  MutableRefObject,
-  ReactNode,
   useMemo,
+  MutableRefObject,
+  ReactElement,
 } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -50,14 +50,14 @@ const EuiDataGridCellContent: FunctionComponent<
   EuiDataGridCellValueProps & {
     setCellProps: EuiDataGridCellValueElementProps['setCellProps'];
     setCellContentsRef: (ref: HTMLDivElement | null) => void;
+    showCellActions: boolean;
     isExpanded: boolean;
+    onExpandClick: () => void;
+    popoverAnchorRef: MutableRefObject<HTMLDivElement | null>;
     isControlColumn: boolean;
     isFocused: boolean;
     ariaRowIndex: number;
     rowHeight?: EuiDataGridRowHeightOption;
-    showCellActions: boolean;
-    handleCellExpansionClick: () => void;
-    popoverAnchorRef: MutableRefObject<HTMLDivElement | null>;
   }
 > = memo(
   ({
@@ -73,7 +73,7 @@ const EuiDataGridCellContent: FunctionComponent<
     isControlColumn,
     isFocused,
     showCellActions,
-    handleCellExpansionClick,
+    onExpandClick,
     popoverAnchorRef,
     ...rest
   }) => {
@@ -99,61 +99,31 @@ const EuiDataGridCellContent: FunctionComponent<
       [cellHeightType, isControlColumn]
     );
 
-    const cellActions = useMemo(() => {
-      if (showCellActions) {
-        return (
-          <CellActions
-            rowIndex={rowIndex}
-            colIndex={colIndex}
-            column={column}
-            handleCellExpansionClick={handleCellExpansionClick}
-            popoverAnchorRef={popoverAnchorRef}
-          />
-        );
-      } else {
-        return null;
-      }
-    }, [
-      rowIndex,
-      colIndex,
-      column,
-      handleCellExpansionClick,
-      popoverAnchorRef,
-      showCellActions,
-    ]);
-
-    const cellContent = useMemo(
-      () => (
-        <div
-          ref={setCellContentsRef}
-          data-datagrid-cellcontent
-          className={classes}
+    return (
+      <>
+        <RenderTruncatedCellContent
+          hasLineCountTruncation={
+            cellHeightType === 'lineCount' && !isControlColumn
+          }
+          rowHeight={rowHeight}
         >
-          <CellElement
-            isDetails={false}
-            data-test-subj="cell-content"
-            rowIndex={rowIndex}
-            colIndex={colIndex}
-            schema={column?.schema || rest.columnType}
-            {...cellContext}
-            {...rest}
-          />
-        </div>
-      ),
-      [
-        setCellContentsRef,
-        classes,
-        CellElement,
-        rowIndex,
-        colIndex,
-        column?.schema,
-        cellContext,
-        rest,
-      ]
-    );
+          <div
+            ref={setCellContentsRef}
+            data-datagrid-cellcontent
+            className={classes}
+          >
+            <CellElement
+              isDetails={false}
+              data-test-subj="cell-content"
+              rowIndex={rowIndex}
+              colIndex={colIndex}
+              schema={column?.schema || rest.columnType}
+              {...cellContext}
+              {...rest}
+            />
+          </div>
+        </RenderTruncatedCellContent>
 
-    const screenReaderText = useMemo(
-      () => (
         <EuiScreenReaderOnly>
           <p hidden={!isFocused}>
             {'- '}
@@ -177,84 +147,22 @@ const EuiDataGridCellContent: FunctionComponent<
             )}
           </p>
         </EuiScreenReaderOnly>
-      ),
-      [
-        isFocused,
-        column?.displayAsText,
-        rest.columnId,
-        colIndex,
-        ariaRowIndex,
-        showCellActions,
-      ]
-    );
 
-    const truncatedCellContent = useMemo(() => {
-      if (cellHeightType === 'lineCount' && !isControlColumn) {
-        const lines = rowHeightUtils!.getLineCount(rowHeight)!;
-        return (
-          <EuiTextBlockTruncate lines={lines} cloneElement>
-            {cellContent}
-          </EuiTextBlockTruncate>
-        );
-      }
-      return cellContent;
-    }, [
-      cellHeightType,
-      isControlColumn,
-      rowHeightUtils,
-      rowHeight,
-      cellContent,
-    ]);
-
-    return (
-      <>
-        {truncatedCellContent}
-        {screenReaderText}
-        {cellActions}
+        {showCellActions && (
+          <EuiDataGridCellActions
+            rowIndex={rowIndex}
+            colIndex={colIndex}
+            column={column}
+            onExpandClick={onExpandClick}
+            popoverAnchorRef={popoverAnchorRef}
+          />
+        )}
       </>
     );
   }
 );
 
 EuiDataGridCellContent.displayName = 'EuiDataGridCellContent';
-
-const RenderCellInRow: FunctionComponent<{
-  children: ReactNode;
-  row?: HTMLElement;
-}> = ({ row, children }) => <>{row ? createPortal(children, row) : children}</>;
-
-const CellActions: FunctionComponent<{
-  rowIndex: number;
-  colIndex: number;
-  column: EuiDataGridCellProps['column'];
-  handleCellExpansionClick: () => void;
-  popoverAnchorRef: MutableRefObject<HTMLDivElement | null>;
-}> = memo(
-  ({
-    rowIndex,
-    colIndex,
-    column,
-    handleCellExpansionClick,
-    popoverAnchorRef,
-  }) => {
-    return (
-      <>
-        <EuiDataGridCellActions
-          rowIndex={rowIndex}
-          colIndex={colIndex}
-          column={column}
-          onExpandClick={handleCellExpansionClick}
-        />
-        {/* Give the cell expansion popover a separate div/ref - otherwise the
-    extra popover wrappers mess up the absolute positioning and cause
-    animation stuttering */}
-        <div ref={popoverAnchorRef} data-test-subject="cellPopoverAnchor" />
-      </>
-    );
-  }
-);
-
-CellActions.displayName = 'CellActions';
 
 export class EuiDataGridCell extends Component<
   EuiDataGridCellProps,
@@ -486,6 +394,7 @@ export class EuiDataGridCell extends Component<
       if (nextProps.style.width !== this.props.style.width) return true;
     }
 
+    if (nextProps.cellContext !== this.props.cellContext) return true;
     if (nextState.cellProps !== this.state.cellProps) return true;
     if (nextState.isFocused !== this.state.isFocused) return true;
     if (nextState.isHovered !== this.state.isHovered) return true;
@@ -714,29 +623,6 @@ export class EuiDataGridCell extends Component<
       rowHeightsOptions
     );
 
-    const cellContentProps = {
-      ...rest,
-      setCellProps: this.setCellProps,
-      column,
-      columnType,
-      isExpandable,
-      isExpanded: popoverIsOpen,
-      isDetails: false,
-      isFocused: this.state.isFocused,
-      setCellContentsRef: this.setCellContentsRef,
-      rowHeight,
-      rowHeightUtils,
-      isControlColumn: cellClasses.includes(
-        'euiDataGridRowCell--controlColumn'
-      ),
-      ariaRowIndex,
-      showCellActions,
-      rowIndex,
-      colIndex,
-      handleCellExpansionClick: this.handleCellExpansionClick,
-      popoverAnchorRef: this.popoverAnchorRef,
-    };
-
     const row =
       rowManager && !IS_JEST_ENVIRONMENT
         ? rowManager.getRow({
@@ -771,11 +657,62 @@ export class EuiDataGridCell extends Component<
             renderFocusTrap={!isExpandable}
           >
             <EuiDataGridCellContent
-              {...cellContentProps}
-            ></EuiDataGridCellContent>
+              {...rest}
+              setCellProps={this.setCellProps}
+              column={column}
+              columnType={columnType}
+              isExpandable={isExpandable}
+              isExpanded={popoverIsOpen}
+              onExpandClick={this.handleCellExpansionClick}
+              popoverAnchorRef={this.popoverAnchorRef}
+              showCellActions={showCellActions}
+              isFocused={this.state.isFocused}
+              setCellContentsRef={this.setCellContentsRef}
+              rowHeight={rowHeight}
+              rowHeightUtils={rowHeightUtils}
+              isControlColumn={cellClasses.includes(
+                'euiDataGridRowCell--controlColumn'
+              )}
+              ariaRowIndex={ariaRowIndex}
+              rowIndex={rowIndex}
+              colIndex={colIndex}
+            />
           </HandleInteractiveChildren>
         </div>
       </RenderCellInRow>
     );
   }
 }
+
+/**
+ * Function component utilities for conditional rendering.
+ * Used for DRYness and performance
+ */
+
+const RenderCellInRow: FunctionComponent<{
+  children: ReactElement;
+  row?: HTMLElement;
+}> = memo(({ row, children }) =>
+  row ? createPortal(children, row) : children
+);
+RenderCellInRow.displayName = 'RenderCellInRow';
+
+const RenderTruncatedCellContent: FunctionComponent<{
+  children: ReactElement;
+  hasLineCountTruncation: boolean;
+  rowHeight?: EuiDataGridRowHeightOption;
+}> = memo(({ children, hasLineCountTruncation, rowHeight }) => {
+  // If `hasLineCountTruncation` is true, we can rely on rowHeight being the correct type
+  const lines = hasLineCountTruncation
+    ? (rowHeight as { lineCount: number }).lineCount
+    : undefined;
+
+  return lines ? (
+    <EuiTextBlockTruncate lines={lines} cloneElement>
+      {children}
+    </EuiTextBlockTruncate>
+  ) : (
+    children
+  );
+});
+RenderTruncatedCellContent.displayName = 'RenderTruncatedCellContent';
