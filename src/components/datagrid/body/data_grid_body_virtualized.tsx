@@ -122,7 +122,6 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
   memo(
     ({
       leadingControlColumns,
-      sorting,
       trailingControlColumns,
       columns,
       visibleColCount,
@@ -136,6 +135,7 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
       renderFooterCellValue,
       interactiveCellId,
       pagination,
+      sorting,
       setVisibleColumns,
       switchColumnPos,
       onColumnResize,
@@ -194,17 +194,17 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
        * Header & footer
        */
       const { headerRow, headerRowHeight } = useDataGridHeader({
-        switchColumnPos,
-        setVisibleColumns,
         leadingControlColumns,
         trailingControlColumns,
         columns,
         columnWidths,
         defaultColumnWidth,
         setColumnWidth,
+        setVisibleColumns,
+        switchColumnPos,
+        sorting,
         schema,
         schemaDetectors,
-        sorting,
       });
 
       const { footerRow, footerRowHeight } = useDataGridFooter({

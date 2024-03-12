@@ -139,12 +139,12 @@ export interface EuiDataGridSchemaDetector {
 }
 
 export interface EuiDataGridHeaderRowPropsSpecificProps {
+  sorting?: EuiDataGridSorting;
   leadingControlColumns?: EuiDataGridControlColumn[];
   trailingControlColumns?: EuiDataGridControlColumn[];
   columns: EuiDataGridColumn[];
   columnWidths: EuiDataGridColumnWidths;
   schema: EuiDataGridSchema;
-  sorting?: EuiDataGridSorting;
   schemaDetectors: EuiDataGridSchemaDetector[];
   defaultColumnWidth?: number | null;
   setColumnWidth: (columnId: string, width: number) => void;
@@ -201,7 +201,7 @@ export interface EuiDataGridVisibleRows {
   visibleRowCount: number;
 }
 
-export interface DataGridSortingContextShape {
+export interface DataGridSortedContextShape {
   sorting?: EuiDataGridSorting;
   sortedRowMap: number[];
   getCorrectRowIndex: (visibleRowIndex: number) => number;
@@ -456,7 +456,6 @@ export interface EuiDataGridBodyProps {
   columns: EuiDataGridColumn[];
   visibleColCount: number;
   schema: EuiDataGridSchema;
-  sorting?: EuiDataGridSorting;
   schemaDetectors: EuiDataGridSchemaDetector[];
   rowCount: number;
   visibleRows: EuiDataGridVisibleRows;
@@ -466,6 +465,7 @@ export interface EuiDataGridBodyProps {
   renderFooterCellValue?: EuiDataGridCellProps['renderCellValue'];
   renderCustomGridBody?: EuiDataGridProps['renderCustomGridBody'];
   interactiveCellId: EuiDataGridCellProps['interactiveCellId'];
+  sorting?: EuiDataGridSorting;
   pagination?: Required<EuiDataGridPaginationProps>;
   setVisibleColumns: EuiDataGridHeaderRowProps['setVisibleColumns'];
   switchColumnPos: EuiDataGridHeaderRowProps['switchColumnPos'];

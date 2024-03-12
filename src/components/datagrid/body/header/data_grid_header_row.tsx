@@ -18,19 +18,19 @@ import {
 const EuiDataGridHeaderRow = memo(
   forwardRef<HTMLDivElement, EuiDataGridHeaderRowProps>((props, ref) => {
     const {
+      className,
+      'data-test-subj': _dataTestSubj,
       leadingControlColumns = emptyControlColumns,
       trailingControlColumns = emptyControlColumns,
       columns,
-      schema,
-      schemaDetectors,
       columnWidths,
       defaultColumnWidth,
-      className,
-      sorting,
       setColumnWidth,
       setVisibleColumns,
       switchColumnPos,
-      'data-test-subj': _dataTestSubj,
+      sorting,
+      schema,
+      schemaDetectors,
       ...rest
     } = props;
 
@@ -55,17 +55,17 @@ const EuiDataGridHeaderRow = memo(
         {columns.map((column, index) => (
           <EuiDataGridHeaderCell
             key={column.id}
+            index={index + leadingControlColumns.length}
             column={column}
             columns={columns}
-            index={index + leadingControlColumns.length}
             columnWidths={columnWidths}
-            schema={schema}
-            sorting={sorting}
-            schemaDetectors={schemaDetectors}
+            defaultColumnWidth={defaultColumnWidth}
             setColumnWidth={setColumnWidth}
             setVisibleColumns={setVisibleColumns}
             switchColumnPos={switchColumnPos}
-            defaultColumnWidth={defaultColumnWidth}
+            sorting={sorting}
+            schema={schema}
+            schemaDetectors={schemaDetectors}
           />
         ))}
         {trailingControlColumns.map((controlColumn, index) => (

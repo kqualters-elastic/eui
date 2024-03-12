@@ -9,7 +9,7 @@
 import { createContext, useMemo, useCallback } from 'react';
 import { useDeepEqual } from '../../../services';
 import {
-  DataGridSortingContextShape,
+  DataGridSortedContextShape,
   EuiDataGridSorting,
   EuiDataGridInMemory,
   EuiDataGridInMemoryValues,
@@ -18,11 +18,10 @@ import {
 } from '../data_grid_types';
 import { defaultComparator } from './data_grid_schema';
 
-export const DataGridSortingContext =
-  createContext<DataGridSortingContextShape>({
-    sortedRowMap: [],
-    getCorrectRowIndex: (number) => number,
-  });
+export const DataGridSortedContext = createContext<DataGridSortedContextShape>({
+  sortedRowMap: [],
+  getCorrectRowIndex: (number) => number,
+});
 
 export type useSortingArgs = {
   sorting?: EuiDataGridSorting;

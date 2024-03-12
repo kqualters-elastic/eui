@@ -30,26 +30,26 @@ export const EuiDataGridBodyCustomRender: FunctionComponent<
   EuiDataGridBodyProps
 > = ({
   renderCustomGridBody,
-  leadingControlColumns,
-  trailingControlColumns,
-  columns,
-  visibleColCount,
-  schema,
-  schemaDetectors,
-  visibleRows,
   renderCellValue,
   cellContext,
   renderCellPopover,
   renderFooterCellValue,
   interactiveCellId,
+  visibleRows,
+  visibleColCount,
+  leadingControlColumns,
+  trailingControlColumns,
+  columns,
   setVisibleColumns,
   switchColumnPos,
   onColumnResize,
-  gridWidth,
-  gridStyles,
+  schema,
+  schemaDetectors,
+  sorting,
   pagination,
   rowHeightsOptions,
-  sorting,
+  gridWidth,
+  gridStyles,
 }) => {
   /**
    * Columns & widths
@@ -92,17 +92,17 @@ export const EuiDataGridBodyCustomRender: FunctionComponent<
    * Header & footer
    */
   const { headerRow } = useDataGridHeader({
-    switchColumnPos,
-    setVisibleColumns,
     leadingControlColumns,
     trailingControlColumns,
     columns,
     columnWidths,
     defaultColumnWidth,
     setColumnWidth,
+    setVisibleColumns,
+    switchColumnPos,
+    sorting,
     schema,
     schemaDetectors,
-    sorting,
   });
 
   const { footerRow } = useDataGridFooter({
@@ -160,7 +160,7 @@ export const EuiDataGridBodyCustomRender: FunctionComponent<
     rowHeightUtils,
   ]);
 
-  const _Cell = useCallback<EuiDataGridCustomBodyProps['Cell']>(
+  const Cell = useCallback<EuiDataGridCustomBodyProps['Cell']>(
     ({ colIndex, visibleRowIndex, ...rest }) => {
       const style = {
         height: rowHeightUtils.isAutoHeight(visibleRowIndex, rowHeightsOptions)
@@ -194,7 +194,7 @@ export const EuiDataGridBodyCustomRender: FunctionComponent<
       {renderCustomGridBody!({
         visibleColumns,
         visibleRowData: visibleRows,
-        Cell: _Cell,
+        Cell,
         setCustomGridBodyProps,
       })}
       {footerRow}

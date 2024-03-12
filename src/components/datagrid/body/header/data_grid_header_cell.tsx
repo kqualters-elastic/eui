@@ -53,17 +53,17 @@ const CellContent: FunctionComponent<
 export const EuiDataGridHeaderCell: FunctionComponent<EuiDataGridHeaderCellProps> =
   memo(
     ({
-      column,
       index,
+      column,
       columns,
       columnWidths,
-      schema,
-      schemaDetectors,
       defaultColumnWidth,
       setColumnWidth,
       setVisibleColumns,
       switchColumnPos,
       sorting,
+      schema,
+      schemaDetectors,
     }) => {
       const { id, display, displayAsText, displayHeaderCellProps } = column;
       const width = columnWidths[id] || defaultColumnWidth;
