@@ -36,6 +36,8 @@ export class RowHeightUtils {
     rowIndex: number,
     rowHeightsOptions?: EuiDataGridRowHeightsOptions
   ): EuiDataGridRowHeightOption | undefined {
+    const rowHeightOption = rowHeightsOptions?.rowHeights?.[rowIndex];
+    console.log({ rowHeightOption});
     return (
       rowHeightsOptions?.rowHeights?.[rowIndex] ??
       rowHeightsOptions?.defaultHeight

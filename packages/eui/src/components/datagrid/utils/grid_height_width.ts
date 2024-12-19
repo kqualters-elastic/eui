@@ -74,7 +74,7 @@ export const useFinalGridDimensions = ({
       setWidth(wrapperWidth);
     }
   }, [wrapperDimensions.width, unconstrainedWidth, wrapperRef]);
-
+  console.log({ height, unconstrainedHeight });
   const finalHeight = isFullScreen
     ? fullScreenHeight
     : height || unconstrainedHeight;
@@ -133,6 +133,7 @@ export const useUnconstrainedHeight = ({
         correctRowIndex,
         rowHeightsOptions
       );
+      console.log({ calculatedRowHeightOption: rowHeightOption });
 
       if (rowHeightOption) {
         // this row's height is known
@@ -148,7 +149,14 @@ export const useUnconstrainedHeight = ({
 
     // how many rows to provide space for on the screen
     const rowCountToAffordFor = endRow - startRow;
-
+    console.log({
+      endRow,
+      startRow,
+      rowCountToAffordFor,
+      knownRowCount,
+      defaultRowHeight,
+      knownHeight,
+    });
     const unconstrainedHeight =
       defaultRowHeight * (rowCountToAffordFor - knownRowCount) + // guess how much space is required for unknown rows
       knownHeight + // computed pixel height of the known rows

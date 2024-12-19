@@ -285,7 +285,7 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
         isFullScreen,
         rowCount,
       });
-
+      console.log({ finalWidth, finalHeight });
       /**
        * Grid resets
        */
