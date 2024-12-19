@@ -36,8 +36,6 @@ export class RowHeightUtils {
     rowIndex: number,
     rowHeightsOptions?: EuiDataGridRowHeightsOptions
   ): EuiDataGridRowHeightOption | undefined {
-    const rowHeightOption = rowHeightsOptions?.rowHeights?.[rowIndex];
-    console.log({ rowHeightOption});
     return (
       rowHeightsOptions?.rowHeights?.[rowIndex] ??
       rowHeightsOptions?.defaultHeight
@@ -158,11 +156,18 @@ export class RowHeightUtils {
 
   getRowHeight(rowIndex: number) {
     const rowHeights = this.heightsCache.get(rowIndex);
-    if (rowHeights == null) return 0;
+    if (rowHeights == null) {
+      console.log('getRowHeights null');
+      return 0;
+    }
 
     const rowHeightValues = Array.from(rowHeights.values());
-    if (!rowHeightValues.length) return 0;
+    if (!rowHeightValues.length) {
+      console.log('getRowHeights empty');
+      return 0;
+    }
 
+    console.log('getRowHeights', Math.max(...rowHeightValues));
     return Math.max(...rowHeightValues);
   }
 

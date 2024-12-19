@@ -273,7 +273,7 @@ export const EuiDataGridBodyVirtualized: FunctionComponent<EuiDataGridBodyProps>
         scrollBarHeight,
         innerGridRef,
       });
-
+      console.log({ unconstrainedHeight });
       /**
        * Final grid height & width
        */

@@ -136,6 +136,15 @@ export const useUnconstrainedHeight = ({
       console.log({ calculatedRowHeightOption: rowHeightOption });
 
       if (rowHeightOption) {
+        console.log(
+          'rowHeightOption',
+          rowHeightUtils.getCalculatedHeight(
+            rowHeightOption,
+            defaultRowHeight,
+            correctRowIndex,
+            rowHeightsOptions
+          )
+        );
         // this row's height is known
         knownRowCount++;
         knownHeight += rowHeightUtils.getCalculatedHeight(
